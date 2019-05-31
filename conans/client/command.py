@@ -1222,22 +1222,12 @@ class Command(object):
 
         args = parser.parse_args(*args)
 
-        try:
-            pref = PackageReference.loads(args.pattern_or_reference, validate=True)
-            reference = pref.ref.full_repr()
-            package_id = pref.id
-        except ConanException:
-            reference = args.pattern_or_reference
-            package_id = args.package
+        reference, package_id = _prase_package_args(args.reference, args.package)
 
-            if package_id:
-                self._user_io.out.warn("Usage of `--package` argument is deprecated."
-                                       " Use a full reference instead: "
-                                       "`conan upload [...] {}:{}`".format(reference, package_id))
-        else:
-            if args.package:
-                raise ConanException("Use a full package reference (preferred) or the `--package`"
-                                     " command argument, but not both.")
+        if args.package:
+            self._user_io.out.warn("Usage of `--package` argument is deprecated."
+                                    " Use a full reference instead: "
+                                    "`conan get [...] {}:{}`".format(reference, package_id))
 
         if args.query and package_id:
             raise ConanException("'-q' and '-p' parameters can't be used at the same time")
@@ -1485,22 +1475,12 @@ class Command(object):
                             help='Do not decorate the text')
         args = parser.parse_args(*args)
 
-        try:
-            pref = PackageReference.loads(args.reference, validate=True)
-            reference = pref.ref.full_repr()
-            package_id = pref.id
-        except ConanException:
-            reference = args.reference
-            package_id = args.package
+        reference, package_id = _prase_package_args(args.reference, args.package)
 
-            if package_id:
-                self._user_io.out.warn("Usage of `--package` argument is deprecated."
-                                       " Use a full reference instead: "
-                                       "`conan get [...] {}:{}`".format(reference, package_id))
-        else:
-            if args.package:
-                raise ConanException("Use a full package reference (preferred) or the `--package`"
-                                     " command argument, but not both.")
+        if args.package:
+            self._user_io.out.warn("Usage of `--package` argument is deprecated."
+                                   " Use a full reference instead: "
+                                   "`conan get [...] {}:{}`".format(reference, package_id))
 
         ret, path = self._conan.get_path(reference, package_id, args.path, args.remote)
         if isinstance(ret, list):
@@ -1771,6 +1751,20 @@ def get_reference_fields(arg_reference):
                                  "user/channel" % arg_reference)
 
     return name, version, user, channel
+
+
+def _prase_package_args(reference, package_id):
+    # The function try to prase the reference as full reference and if isnt one it returns the inputs arguments.
+    try:
+        pref = PackageReference.loads(reference, validate=True)
+    except ConanException:
+        return reference, package_id
+
+    else:
+        if package_id:
+            raise ConanException("Use a full package reference (preferred) or the `--package`"
+                                 " command argument, but not both.")
+        return pref.ref.full_repr(), pref.id
 
 
 def _add_manifests_arguments(parser):
