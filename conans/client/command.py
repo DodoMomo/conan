@@ -1229,19 +1229,16 @@ class Command(object):
                                     " Use a full reference instead: "
                                     "`conan get [...] {}:{}`".format(reference, package_id))
 
+        if args.package and args.query:
+            raise ConanException("'--query' argument cannot be used together with '-package'")
         if args.query and package_id:
-            raise ConanException("'-q' and '-p' parameters can't be used at the same time")
-
-        cwd = os.getcwd()
-        info = None
-
+            raise ConanException("'--query' argument cannot be used together with full reference")
         if args.force and args.no_overwrite:
             raise ConanException("'--no-overwrite' argument cannot be used together with '--force'")
         if args.force and args.skip_upload:
             raise ConanException("'--skip-upload' argument cannot be used together with '--force'")
         if args.no_overwrite and args.skip_upload:
-            raise ConanException("'--skip-upload' argument cannot be used together "
-                                 "with '--no-overwrite'")
+            raise ConanException("'--skip-upload' argument cannot be used together with '--no-overwrite'")
 
         self._warn_python2()
 
@@ -1256,6 +1253,7 @@ class Command(object):
         else:
             policy = None
 
+        info = None
         try:
             info = self._conan.upload(pattern=reference, package=package_id,
                                       query=args.query, remote_name=args.remote,
@@ -1267,7 +1265,7 @@ class Command(object):
             raise
         finally:
             if args.json and info:
-                self._outputer.json_output(info, args.json, cwd)
+                self._outputer.json_output(info, args.json, os.getcwd())
 
     def remote(self, *args):
         """
