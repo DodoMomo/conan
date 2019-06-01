@@ -373,9 +373,9 @@ class Command(object):
                             action="store_true")
 
         args = parser.parse_args(*args)
-
+        reference, package_id = _prase_package_args(args.reference, args.package)
         self._warn_python2()
-        return self._conan.download(reference=args.reference, package=args.package,
+        return self._conan.download(reference=reference, package=package_id,
                                     remote_name=args.remote, recipe=args.recipe)
 
     def install(self, *args):
@@ -998,13 +998,16 @@ class Command(object):
                             help='Override destination packages and the package recipe')
         args = parser.parse_args(*args)
 
+        reference, package_id = _prase_package_args(args.reference, args.package)
+
         if args.all and args.package:
             raise ConanException("Cannot specify both --all and --package")
-
+        if args.all and package_id:
+            raise ConanException("'--all' argument cannot be used together with full reference")
         self._warn_python2()
 
-        return self._conan.copy(reference=args.reference, user_channel=args.user_channel,
-                                force=args.force, packages=args.package or args.all)
+        return self._conan.copy(reference=reference, user_channel=args.user_channel,
+                                force=args.force, packages=package_id or args.all)
 
     def user(self, *args):
         """
