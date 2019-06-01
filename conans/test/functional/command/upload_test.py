@@ -147,6 +147,14 @@ class UploadTest(unittest.TestCase):
         self.assertIn("Use a full package reference (preferred) or the "
                       "`--package` command argument, but not both.", client.out)
 
+    def upload_with_pref_and_query_test(self):
+        client = self._client()
+        client.save({"conanfile.py": conanfile})
+        client.run("create . user/testing")
+        client.run("upload Hello0/1.2.1@user/testing:{} -c -q 'os=Linux and arch=x86_64'".format(NO_SETTINGS_PACKAGE_ID),
+                   assert_error=True)
+        self.assertIn("'--query' argument cannot be used together with full reference", client.out)
+
     def _client(self):
         if not hasattr(self, "_servers"):
             servers = {}

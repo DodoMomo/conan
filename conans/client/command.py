@@ -1222,15 +1222,15 @@ class Command(object):
 
         args = parser.parse_args(*args)
 
-        reference, package_id = _prase_package_args(args.reference, args.package)
+        reference, package_id = _prase_package_args(args.pattern_or_reference, args.package)
 
         if args.package:
             self._user_io.out.warn("Usage of `--package` argument is deprecated."
                                     " Use a full reference instead: "
-                                    "`conan get [...] {}:{}`".format(reference, package_id))
+                                    "`conan upload [...] {}:{}`".format(reference, package_id))
 
         if args.package and args.query:
-            raise ConanException("'--query' argument cannot be used together with '-package'")
+            raise ConanException("'--query' argument cannot be used together with '--package'")
         if args.query and package_id:
             raise ConanException("'--query' argument cannot be used together with full reference")
         if args.force and args.no_overwrite:
